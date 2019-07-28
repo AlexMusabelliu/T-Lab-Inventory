@@ -28,8 +28,13 @@ def query():
         link_to_image = request.form['link_to_image']
         link_to_video = request.form['link_to_video']
         link_to_acquisition_form = request.form['link_to_acquisition_form']
-        values = " '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ".format(
-            tool, box_number, year_of_acquisition, quantity, quantity_type, cost, "owner", manufacturer_link, "equipment_supply", link_to_image, link_to_video, link_to_acquisition_form, course)
+        values = "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'".format(
+            tool.upper(), box_number, year_of_acquisition, quantity, quantity_type.upper(), cost, owner, manufacturer_link.upper(), equipment_supply, link_to_image.upper(), link_to_video.upper(), link_to_acquisition_form.upper(), course)
+
+        queryParams = [values.split(',').index(x.upper()) for x in values.split(',') if x != " 'None'" and x!= " ''"]
+        print(queryParams)
+
+        cursor.execute("SELECT * FROM tools WHERE ")
 
     return render_template('query.html')
 
@@ -51,12 +56,13 @@ def add():
         link_to_image = request.form['link_to_image']
         link_to_video = request.form['link_to_video']
         link_to_acquisition_form = request.form['link_to_acquisition_form']
-        values = " '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ".format(
-            tool, box_number, year_of_acquisition, quantity, quantity_type, cost, owner, manufacturer_link, equipment_supply, link_to_image, link_to_video, link_to_acquisition_form, course)
+        values = "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'".format(
+            tool.upper(), box_number, year_of_acquisition, quantity, quantity_type.upper(), cost, owner, manufacturer_link.upper(), equipment_supply, link_to_image.upper(), link_to_video.upper(), link_to_acquisition_form.upper(), course)
 
         cursor.execute("INSERT INTO tools (name, box_number, year_of_acquisition, quantity, quantity_type, cost, owner, manufacturer_link, equipment_supply, link_to_image, link_to_video, link_to_acquisition_form, course) VALUES({});".format(values))
         connection.commit()
         message = "Success"
+
 
     return render_template('add.html', message=message)
 
