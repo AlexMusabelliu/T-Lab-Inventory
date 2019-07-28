@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>T's Inventory</title>
+</head>
+
+<body>
+  Type in the information that you know.
+
+  
+  <form action="{{url_for('add')}}" method="post">
+    Name:<br>
+    <input type="text" name="tool"><br>
+    Box Number:<br>
+    <input type="number" name="box_number"><br>
+    Quantity:<br>
+    <input type="number" name="quantity"><br>
+    Quantity Type/Units: <br>
+    <input type="text" name="quantity_type"><br>
+    Acquisition Month/Year:<br>
+    <input type="month" name="year_of_acquisition"><br>
+    Cost: <br>
+    $<input type="number" name="cost"><br>
+    Owner (Student acquisition or Lab acquisition):<br>
+    <select type="owner">
+      <option value="LAB">Lab</option>
+      <option value="STUDENT">Student</option>
+    </select><br>
+
+    Course bought for: <br>
+    <select type="course">
+      <option value="ENG">Engineering Research</option>
+      <option value="IS9">Integrated Science 9</option>
+      <option value="OTHER">Other (Clubs, Personal, etc.)</option>
+    </select><br>
+    Equipment or Supply:<br>
+    <select type="equipment_supply">
+      <option value="EQUIPMENT">Equipment</option>
+      <option value="SUPPLY">Supply</option>
+    </select><br>
+    Manufacturer product link: <br>
+    <input type="text" name="manufacturer_link"><br>
+    Link to image:<br>
+    <input type="text" name="link_to_image"><br>
+    Link to video:<br>
+    <input type="text" name="link_to_video"><br>
+    Link to acquisition form:<br>
+    <input type="text" name="link_to_acquisition_form"><br>
+
+
+    <input type="submit" value="Submit">
+
+  </form>
+</body>
+
+</html>
