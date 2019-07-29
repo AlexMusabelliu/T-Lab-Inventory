@@ -1,37 +1,74 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, redirect
 from flaskext.mysql import MySQL
 
 app = Flask(__name__)
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'ProblemTRT?'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'tetris1234'
 app.config['MYSQL_DATABASE_DB'] = 'inventory'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 connection = mysql.connect()
 cursor = connection.cursor()
 
+class request():
+    form = {"tool":"wrench", "box_number":None,"quantity":4,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,"manufacturer_link":None,
+            "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
+    method = "POST"
+
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
     if request.method == 'POST':
-        tool = request.form['tool']
-        box_number = request.form['box_number']
-        quantity = request.form['quantity']
-        quantity_type = request.form['quantity_type']
-        year_of_acquisition = request.form['year_of_acquisition']
-        cost = request.form['cost']
-        owner = request.form.get('owner')
-        course = request.form.get('course')
-        equipment_supply = request.form.get('equipment_supply')
-        manufacturer_link = request.form['manufacturer_link']
-        link_to_image = request.form['link_to_image']
-        link_to_video = request.form['link_to_video']
-        link_to_acquisition_form = request.form['link_to_acquisition_form']
-        values = "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'".format(
-            tool.upper(), box_number, year_of_acquisition, quantity, quantity_type.upper(), cost, owner, manufacturer_link.upper(), equipment_supply, link_to_image.upper(), link_to_video.upper(), link_to_acquisition_form.upper(), course)
+        # tool = request.form['tool']
+        # box_number = request.form['box_number']
+        # quantity = request.form['quantity']
+        # quantity_type = request.form['quantity_type']
+        # year_of_acquisition = request.form['year_of_acquisition']
+        # cost = request.form['cost']
+        # owner = request.form.get('owner')
+        # course = request.form.get('course')
+        # equipment_supply = request.form.get('equipment_supply')
+        # manufacturer_link = request.form['manufacturer_link']
+        # link_to_image = request.form['link_to_image']
+        # link_to_video = request.form['link_to_video']
+        # link_to_acquisition_form = request.form['link_to_acquisition_form']
+        
+        allParam = {"tool":request.form['tool'], 
+                    "box_number":request.form['box_number'],
+                    "quantity":request.form['quantity'],
+                    "year_of_acquisition":request.form['year_of_acquisition'],
+                    "cost":request.form['cost'],
+                    "owner":request.form.get('owner'),
+                    "course":request.form.get('course'),
+                    "equipment_supply":request.form.get('equipment_supply'),
+                    "manufacturer_link":request.form['manufacturer_link'],
+                    "link_to_image":request.form['link_to_image'],
+                    "link_to_video":request.form['link_to_video'],
+                    "quantity_type":request.form['quantity_type'],
+                    'link_to_acquisition_form':request.form['link_to_acquisition_form']}
+        
+        to_insert = ()
 
-        queryParams = [values.split(',').index(x.upper()) for x in values.split(',') if x != " 'None'" and x!= " ''"]
+        for param in allParam:
+            val = allParam.get(param)
+            try:
+                to_insert += (val.upper(), )
+            except:
+                if val != None:
+                    to_insert += (val, )
+                else:
+                    to_insert += ("None", )
+
+        #print(*to_insert)
+        values = "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'".format(*to_insert)
+
+        #print(values)
+
+        # print(values.split(", "))
+        # print(values.split(","))
+
+        queryParams = [x for x in values.split(', ') if x != "'None'" and x != "''"]
         print(queryParams)
 
         cursor.execute("SELECT * FROM tools WHERE ")
@@ -84,4 +121,5 @@ def setup():
 
 
 if __name__ == '__main__':
-    app.run()
+   # app.run()
+    query()
