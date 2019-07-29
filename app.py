@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect
 from flaskext.mysql import MySQL
+# import sqlite3, os
 
 app = Flask(__name__)
 mysql = MySQL()
@@ -10,10 +11,13 @@ app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 connection = mysql.connect()
 cursor = connection.cursor()
+# os.chdir(os.path.abspath(os.path.dirname(__file__)))
+# connection = sqlite3.connect("database.db")
+# cursor = connection.cursor()
 
 #This is a test class I created so I can do offline tests with sqlite3
 # class request():
-#     form = {"tool":"wrench", "box_number":None,"quantity":20,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,
+#     form = {"tool":"wrench", "box_number":None,"quantity":1337,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,
 #             "manufacturer_link":None, "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
 #     method = "POST"
 
@@ -34,9 +38,8 @@ allParam = {"tool":request.form['tool'],
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
+    global queryParams
     if request.method == 'POST':
-        queryParams = " OR ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
-
         #Here are the rows where each param = the value given:
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
@@ -48,17 +51,26 @@ def query():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    global queryParams
     message = ""
     if request.method == 'POST':
-        allRows = [x for x in cursor.execute("SELECT ALL tool FROM tools")]
-        idCheck = (allParam.get("tool"), ) not in allRows
+        #create querying parameters
+        queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
+        
+        allRows = [x for x in cursor.execute("SELECT * FROM tools")]
+
+        assembleTuple = ()
+        for x in allParam:
+            assembleTuple += (str(allParam.get(x)), )
+
+        idCheck = assembleTuple not in allRows
 
         if idCheck:
-            cursor.execute("INSERT INTO tools VALUES (" + "?, " * (len(allParam) - 1) + "?)", [allParam.get(x) for x in allParam])
+            cursor.execute("INSERT INTO tools VALUES (" + "?, " * (len(allParam) - 1) + "?)", [str(allParam.get(x)) for x in allParam])
         else:
             parameters = ", ".join([str(x) + " = '" + str(allParam.get(x)) + "'" for x in allParam if x != "tool"])
             
-            statement = "UPDATE tools SET " + parameters + " WHERE tool = '" + allParam.get("tool") + "';"
+            statement = "UPDATE tools SET " + parameters + " WHERE " + queryParams + ";"
 
             cursor.execute(statement)
 
