@@ -11,41 +11,37 @@ mysql.init_app(app)
 connection = mysql.connect()
 cursor = connection.cursor()
 
+#This is a test class I created so I can do offline tests with sqlite3
+# class request():
+#     form = {"tool":"wrench", "box_number":None,"quantity":20,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,
+#             "manufacturer_link":None, "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
+#     method = "POST"
 
-
-class request():
-    form = {"tool":"wrench", "box_number":None,"quantity":4,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,"manufacturer_link":None,
-            "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
-    method = "POST"
+allParam = {"tool":request.form['tool'], 
+            "box_number":request.form['box_number'],
+            "quantity":request.form['quantity'],
+            "year_of_acquisition":request.form['year_of_acquisition'],
+            "cost":request.form['cost'],
+            "owner":request.form.get('owner'),
+            "course":request.form.get('course'),
+            "equipment_supply":request.form.get('equipment_supply'),
+            "manufacturer_link":request.form['manufacturer_link'],
+            "link_to_image":request.form['link_to_image'],
+            "link_to_video":request.form['link_to_video'],
+            "quantity_type":request.form['quantity_type'],
+            'link_to_acquisition_form':request.form['link_to_acquisition_form']}
 
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
     if request.method == 'POST':
-        allParam = {"tool":request.form['tool'], 
-                    "box_number":request.form['box_number'],
-                    "quantity":request.form['quantity'],
-                    "year_of_acquisition":request.form['year_of_acquisition'],
-                    "cost":request.form['cost'],
-                    "owner":request.form.get('owner'),
-                    "course":request.form.get('course'),
-                    "equipment_supply":request.form.get('equipment_supply'),
-                    "manufacturer_link":request.form['manufacturer_link'],
-                    "link_to_image":request.form['link_to_image'],
-                    "link_to_video":request.form['link_to_video'],
-                    "quantity_type":request.form['quantity_type'],
-                    'link_to_acquisition_form':request.form['link_to_acquisition_form']}
-
         queryParams = " OR ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
-
-        #Creates a test case based off of my test class:
-        #cursor.execute("INSERT INTO tools VALUES (" + "?, " * (len(allParam) - 1) + "?)", [allParam.get(x) for x in allParam])
 
         #Here are the rows where each param = the value given:
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
         #To view what values has found, you can do this:
-        #[print(x) for x in values]
+        # [print(x) for x in values]
 
     return render_template('query.html')
 
@@ -54,26 +50,20 @@ def query():
 def add():
     message = ""
     if request.method == 'POST':
-        tool = request.form['tool']
-        box_number = request.form['box_number']
-        quantity = request.form['quantity']
-        quantity_type = request.form['quantity_type']
-        year_of_acquisition = request.form['year_of_acquisition']
-        cost = request.form['cost']
-        owner = request.form.get('owner')
-        course = request.form.get('course')
-        equipment_supply = request.form.get('equipment_supply')
-        manufacturer_link = request.form['manufacturer_link']
-        link_to_image = request.form['link_to_image']
-        link_to_video = request.form['link_to_video']
-        link_to_acquisition_form = request.form['link_to_acquisition_form']
-        values = "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'".format(
-            tool.upper(), box_number, year_of_acquisition, quantity, quantity_type.upper(), cost, owner, manufacturer_link.upper(), equipment_supply, link_to_image.upper(), link_to_video.upper(), link_to_acquisition_form.upper(), course)
+        allRows = [x for x in cursor.execute("SELECT ALL tool FROM tools")]
+        idCheck = (allParam.get("tool"), ) not in allRows
 
-        cursor.execute("INSERT INTO tools (name, box_number, year_of_acquisition, quantity, quantity_type, cost, owner, manufacturer_link, equipment_supply, link_to_image, link_to_video, link_to_acquisition_form, course) VALUES({});".format(values))
+        if idCheck:
+            cursor.execute("INSERT INTO tools VALUES (" + "?, " * (len(allParam) - 1) + "?)", [allParam.get(x) for x in allParam])
+        else:
+            parameters = ", ".join([str(x) + " = '" + str(allParam.get(x)) + "'" for x in allParam if x != "tool"])
+            
+            statement = "UPDATE tools SET " + parameters + " WHERE tool = '" + allParam.get("tool") + "';"
+
+            cursor.execute(statement)
+
         connection.commit()
         message = "Success"
-
 
     return render_template('add.html', message=message)
 
@@ -96,4 +86,5 @@ def setup():
 
 if __name__ == '__main__':
     app.run()
-    query()
+    # add()
+    # query()
