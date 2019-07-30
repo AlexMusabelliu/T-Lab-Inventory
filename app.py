@@ -1,11 +1,12 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 from flaskext.mysql import MySQL
 # import sqlite3, os
 
 app = Flask(__name__)
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'tetris1234'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'ProblemTRT?' #alex's pwd is tetris1234, pranav's is ProblemTRT?
+
 app.config['MYSQL_DATABASE_DB'] = 'inventory'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -21,19 +22,7 @@ cursor = connection.cursor()
 #             "manufacturer_link":None, "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
 #     method = "POST"
 
-allParam = {"tool":request.form['tool'], 
-            "box_number":request.form['box_number'],
-            "quantity":request.form['quantity'],
-            "year_of_acquisition":request.form['year_of_acquisition'],
-            "cost":request.form['cost'],
-            "owner":request.form.get('owner'),
-            "course":request.form.get('course'),
-            "equipment_supply":request.form.get('equipment_supply'),
-            "manufacturer_link":request.form['manufacturer_link'],
-            "link_to_image":request.form['link_to_image'],
-            "link_to_video":request.form['link_to_video'],
-            "quantity_type":request.form['quantity_type'],
-            'link_to_acquisition_form':request.form['link_to_acquisition_form']}
+allParam = None
 
 
 @app.route('/query', methods=['GET', 'POST'])
@@ -44,7 +33,7 @@ def query():
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
         #To view what values has found, you can do this:
-        # [print(x) for x in values]
+        [print(x) for x in values]
 
     return render_template('query.html')
 
@@ -54,9 +43,27 @@ def add():
     global queryParams
     message = ""
     if request.method == 'POST':
+
+        allParam = {"tool":request.form['tool'],
+                    "box_number":request.form['box_number'],
+                    "quantity":request.form['quantity'],
+                    "year_of_acquisition":request.form['year_of_acquisition'],
+                    "cost":request.form['cost'],
+                    "owner":request.form.get('owner'),
+                    "course":request.form.get('course'),
+                    "equipment_supply":request.form.get('equipment_supply'),
+                    "manufacturer_link":request.form['manufacturer_link'],
+                    "link_to_image":request.form['link_to_image'],
+                    "link_to_video":request.form['link_to_video'],
+                    "quantity_type":request.form['quantity_type'],
+                    'link_to_acquisition_form':request.form['link_to_acquisition_form']}
+
+
+
+#im assuming this is all to check if the tool already exists in the database and then create (from here to the connection commit)
         #create querying parameters
         queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
-        
+
         allRows = [x for x in cursor.execute("SELECT * FROM tools")]
 
         assembleTuple = ()
@@ -71,8 +78,9 @@ def add():
         else:
             message = "<img src = https://web.archive.org/web/20091025230433/http://geocities.com/Athens/Styx/5649/genie.gif>This tool already has an entry!"
 
+
         connection.commit()
-        
+
 
     return render_template('add.html', message=message)
 
