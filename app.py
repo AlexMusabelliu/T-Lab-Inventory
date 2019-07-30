@@ -38,8 +38,9 @@ allParam = {"tool":request.form['tool'],
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
-    global queryParams
     if request.method == 'POST':
+        queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
+        
         #Here are the rows where each param = the value given:
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
@@ -51,7 +52,6 @@ def query():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
-    global queryParams
     message = ""
     if request.method == 'POST':
         #create querying parameters
