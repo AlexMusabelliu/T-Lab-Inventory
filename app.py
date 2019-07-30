@@ -38,9 +38,8 @@ allParam = {"tool":request.form['tool'],
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
+    global queryParams
     if request.method == 'POST':
-        queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
-        
         #Here are the rows where each param = the value given:
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
@@ -52,6 +51,7 @@ def query():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    global queryParams
     message = ""
     if request.method == 'POST':
         #create querying parameters
@@ -67,15 +67,12 @@ def add():
 
         if idCheck:
             cursor.execute("INSERT INTO tools VALUES (" + "?, " * (len(allParam) - 1) + "?)", [str(allParam.get(x)) for x in allParam])
+            message = "Success!"
         else:
-            parameters = ", ".join([str(x) + " = '" + str(allParam.get(x)) + "'" for x in allParam if x != "tool"])
-            
-            statement = "UPDATE tools SET " + parameters + " WHERE " + queryParams + ";"
-
-            cursor.execute(statement)
+            message = "<img src = https://web.archive.org/web/20091025230433/http://geocities.com/Athens/Styx/5649/genie.gif>This tool already has an entry!"
 
         connection.commit()
-        message = "Success"
+        
 
     return render_template('add.html', message=message)
 
