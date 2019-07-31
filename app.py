@@ -5,6 +5,7 @@ from flaskext.mysql import MySQL
 app = Flask(__name__)
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
+
 app.config['MYSQL_DATABASE_PASSWORD'] = 'tetris1234' #alex's pwd is tetris1234, pranav's is ProblemTRT?
 
 app.config['MYSQL_DATABASE_DB'] = 'inventory'
@@ -39,7 +40,6 @@ class paramDict():
                         'link_to_acquisition_form':request.form['link_to_acquisition_form']}
 
 
-
 @app.route('/query', methods=['GET', 'POST'])
 def query():
     '''
@@ -65,7 +65,7 @@ def query():
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
         #To view what values has found, you can do this:
-        # [print(x) for x in values]
+        [print(x) for x in values]
 
     return render_template('query.html')
 
@@ -88,6 +88,8 @@ def add():
         #im assuming this is all to check if the tool already exists in the database and then create (from here to the connection commit)
         #^ Yes, this is correct. -A
 
+
+
         #create querying parameters
         queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
 
@@ -104,6 +106,7 @@ def add():
             message = "<img src = https://web.archive.org/web/20091025230433/http://geocities.com/Athens/Styx/5649/genie.gif>This tool already has an entry!"
 
         print(message)
+
         connection.commit()
 
 
