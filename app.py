@@ -5,7 +5,8 @@ from flaskext.mysql import MySQL
 app = Flask(__name__)
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'ProblemTRT?' #alex's pwd is tetris1234, pranav's is ProblemTRT?
+
+app.config['MYSQL_DATABASE_PASSWORD'] = 'tetris1234' #alex's pwd is tetris1234, pranav's is ProblemTRT?
 
 app.config['MYSQL_DATABASE_DB'] = 'inventory'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
@@ -16,20 +17,51 @@ cursor = connection.cursor()
 # connection = sqlite3.connect("database.db")
 # cursor = connection.cursor()
 
-#This is a test class I created so I can do offline tests with sqlite3
+# This is a test class I created so I can do offline tests with sqlite3
 # class request():
 #     form = {"tool":"wrench", "box_number":None,"quantity":1337,"year_of_acquisition":3,"cost":None,"owner":None,"course":"misat","equipment_supply":None,
 #             "manufacturer_link":None, "link_to_image":None,"link_to_video":None,"quantity_type":"???",'link_to_acquisition_form':None}
 #     method = "POST"
 
-allParam = None
+class paramDict():
+    def __init__(self):
+        self.mostParam = {"tool":request.form['tool'],
+                        "box_number":request.form['box_number'],
+                        "quantity":request.form['quantity'],
+                        "year_of_acquisition":request.form['year_of_acquisition'],
+                        "cost":request.form['cost'],
+                        "owner":request.form.get('owner'),
+                        "course":request.form.get('course'),
+                        "equipment_supply":request.form.get('equipment_supply'),
+                        "manufacturer_link":request.form['manufacturer_link'],
+                        "link_to_image":request.form['link_to_image'],
+                        "link_to_video":request.form['link_to_video'],
+                        "quantity_type":request.form['quantity_type'],
+                        'link_to_acquisition_form':request.form['link_to_acquisition_form']}
 
 
 @app.route('/query', methods=['GET', 'POST'])
 def query():
-    global queryParams
+    '''
+    Here is an explanation for what is going on in query:
+    We have allParam, a dictionary containing all the values from our form, located on query.html and add.html.
+    Then, we get the values and keys to make a conditional statement, in the format of:
+
+        [key]='[value]', [key]='[value]', etc.
+        e.g. tool='wrench', quantity='3'
+
+    Which is stored in queryParam and then appended to our SQL query, making:
+
+        SELECT * FROM tools WHERE [key]='value'...
+        e.g. SELECT * FROM tools WHERE tool='wrench'...
+
+    This gets all rows from tools where our values are matching.
+    queryParam ignores entries that are None and entries that are blank, i.e. ''.
+    '''
     if request.method == 'POST':
+        allParam = paramDict().mostParam
         #Here are the rows where each param = the value given:
+        queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
         values = cursor.execute("SELECT * FROM tools WHERE " + queryParams + ";")
 
         #To view what values has found, you can do this:
@@ -40,35 +72,30 @@ def query():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
-    global queryParams
+    '''
+    Here, allParam and queryParam are the same as in the query() function.
+    Before we decided whether or not to reject the attempt to add an entry to the database, we make sure it is in the database. This is done as such:
+    First, we get all the rows in our table, which we then store in the appropriately named 'allRows' list.
+    Then, we create a tuple containing all the values that were given for the object we are adding. All the values are standardized as strings.
+    Finally, we created the boolean variable 'idCheck' to store whether or not the parameters specified in add.html are already in our table.
+    If they are, we insert and send a success message. Otherwise, we reject the attempt.
+    We end by committing all changes to the current database.
+    '''
     message = ""
     if request.method == 'POST':
+        allParam = paramDict().mostParam
 
-        allParam = {"tool":request.form['tool'],
-                    "box_number":request.form['box_number'],
-                    "quantity":request.form['quantity'],
-                    "year_of_acquisition":request.form['year_of_acquisition'],
-                    "cost":request.form['cost'],
-                    "owner":request.form.get('owner'),
-                    "course":request.form.get('course'),
-                    "equipment_supply":request.form.get('equipment_supply'),
-                    "manufacturer_link":request.form['manufacturer_link'],
-                    "link_to_image":request.form['link_to_image'],
-                    "link_to_video":request.form['link_to_video'],
-                    "quantity_type":request.form['quantity_type'],
-                    'link_to_acquisition_form':request.form['link_to_acquisition_form']}
+        #im assuming this is all to check if the tool already exists in the database and then create (from here to the connection commit)
+        #^ Yes, this is correct. -A
 
 
 
-#im assuming this is all to check if the tool already exists in the database and then create (from here to the connection commit)
         #create querying parameters
         queryParams = " AND ".join([x + "=" + "'" + str(allParam.get(x)) + "'" for x in allParam if allParam.get(x) != None and allParam.get(x) != "''"])
 
         allRows = [x for x in cursor.execute("SELECT * FROM tools")]
 
-        assembleTuple = ()
-        for x in allParam:
-            assembleTuple += (str(allParam.get(x)), )
+        assembleTuple = tuple([str(allParam.get(x)) for x in allParam])
 
         idCheck = assembleTuple not in allRows
 
@@ -78,6 +105,7 @@ def add():
         else:
             message = "<img src = https://web.archive.org/web/20091025230433/http://geocities.com/Athens/Styx/5649/genie.gif>This tool already has an entry!"
 
+        print(message)
 
         connection.commit()
 
@@ -103,5 +131,5 @@ def setup():
 
 if __name__ == '__main__':
     app.run()
-    # add()
-    # query()
+    add()
+    query()
